@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
 using log4net;
 using log4net.Config;
 using log4net.Core;
@@ -82,6 +85,8 @@ namespace simple_appender.tests
 
             public DateTime UsedAt;
         }
+
+        
     }
 
    
