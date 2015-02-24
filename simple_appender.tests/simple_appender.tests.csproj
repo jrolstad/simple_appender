@@ -50,9 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationTests.cs" />
+    <Compile Include="Fakes\models\Exchange.cs" />
+    <Compile Include="Fakes\models\ExchangeQueueBinding.cs" />
     <Compile Include="Fakes\FakeModel.cs" />
     <Compile Include="Fakes\FakeConnection.cs" />
     <Compile Include="Fakes\FakeConnectionFactory.cs" />
+    <Compile Include="Fakes\models\Queue.cs" />
     <Compile Include="LoggingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

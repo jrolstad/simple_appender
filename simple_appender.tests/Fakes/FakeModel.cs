@@ -1,25 +1,29 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
+using simple_appender.tests.Fakes.models;
 
 namespace simple_appender.tests.Fakes
 {
     public class FakeModel:IModel
     {
-        public Dictionary<string, List<dynamic>> PublishedMessages = new Dictionary<string, List<dynamic>>();
-
+        private readonly Dictionary<string, List<dynamic>> _publishedMessages = new Dictionary<string, List<dynamic>>();
         public List<dynamic> PublishedMessagesOnExchange(string exchangeName)
         {
-            return PublishedMessages.ContainsKey(exchangeName) ? 
-                PublishedMessages[exchangeName] : new List<dynamic>();
+            return _publishedMessages.ContainsKey(exchangeName) ? 
+                _publishedMessages[exchangeName] : new List<dynamic>();
         }
 
         public List<dynamic> AcknowledgedMessages = new List<dynamic>(); 
         public List<dynamic> RejectedMessages = new List<dynamic>();
         public List<dynamic> NonAcknowledgedMessages = new List<dynamic>();
+
+        public ConcurrentDictionary<string, Exchange> Exchanges = new ConcurrentDictionary<string, Exchange>(); 
 
         public bool ApplyPrefetchToAllChannels { get; private set; }
         public ushort PrefetchCount { get; private set; }
@@ -32,47 +36,57 @@ namespace simple_appender.tests.Fakes
 
         public IBasicProperties CreateBasicProperties()
         {
-            throw new NotImplementedException();
+            return new BasicProperties();
         }
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            throw new NotImplementedException();
+            var exchangeInstance = new Exchange
+            {
+                Name = exchange,
+                Type = type,
+                IsDurable = durable,
+                AutoDelete = autoDelete,
+                Arguments = arguments
+            };
+            Func<string,Exchange,Exchange> updateFunction = (name, existing) => existing;
+            Exchanges.AddOrUpdate(exchange,exchangeInstance, updateFunction);
         }
 
         public void ExchangeDeclare(string exchange, string type, bool durable)
         {
-            throw new NotImplementedException();
+            ExchangeDeclare(exchange, type, durable, autoDelete: false, arguments: null);
         }
 
         public void ExchangeDeclare(string exchange, string type)
         {
-            throw new NotImplementedException();
+            ExchangeDeclare(exchange, type, durable:false, autoDelete: false, arguments: null);
         }
 
         public void ExchangeDeclarePassive(string exchange)
         {
-            throw new NotImplementedException();
+            ExchangeDeclare(exchange, type:null, durable: false, autoDelete: false, arguments: null);
         }
 
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            throw new NotImplementedException();
+            ExchangeDeclare(exchange, type, durable, autoDelete: false, arguments: null);
         }
 
         public void ExchangeDelete(string exchange, bool ifUnused)
         {
-            throw new NotImplementedException();
+            Exchange removedExchange;
+            Exchanges.TryRemove(exchange, out removedExchange);
         }
 
         public void ExchangeDelete(string exchange)
         {
-            throw new NotImplementedException();
+            ExchangeDelete(exchange, ifUnused: false);
         }
 
         public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
-            throw new NotImplementedException();
+            ExchangeDelete(exchange, ifUnused: false);
         }
 
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
@@ -235,9 +249,9 @@ namespace simple_appender.tests.Fakes
 
         public void BasicPublish(PublicationAddress addr, IBasicProperties basicProperties, byte[] body)
         {
-            if (!PublishedMessages.ContainsKey(addr.ExchangeName))
+            if (!_publishedMessages.ContainsKey(addr.ExchangeName))
             {
-                PublishedMessages.Add(addr.ExchangeName,new List<dynamic>());
+                _publishedMessages.Add(addr.ExchangeName,new List<dynamic>());
             }
 
             dynamic parameters = new ExpandoObject();
@@ -245,14 +259,14 @@ namespace simple_appender.tests.Fakes
             parameters.basicProperties = basicProperties;
             parameters.body = body;
 
-            PublishedMessages[addr.ExchangeName].Add(parameters);
+            _publishedMessages[addr.ExchangeName].Add(parameters);
         }
 
         public void BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body)
         {
-            if (!PublishedMessages.ContainsKey(exchange))
+            if (!_publishedMessages.ContainsKey(exchange))
             {
-                PublishedMessages.Add(exchange, new List<dynamic>());
+                _publishedMessages.Add(exchange, new List<dynamic>());
             }
 
             dynamic parameters = new ExpandoObject();
@@ -261,14 +275,14 @@ namespace simple_appender.tests.Fakes
             parameters.basicProperties = basicProperties;
             parameters.body = body;
 
-            PublishedMessages[exchange].Add(parameters);
+            _publishedMessages[exchange].Add(parameters);
         }
 
         public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            if (!PublishedMessages.ContainsKey(exchange))
+            if (!_publishedMessages.ContainsKey(exchange))
             {
-                PublishedMessages.Add(exchange, new List<dynamic>());
+                _publishedMessages.Add(exchange, new List<dynamic>());
             }
 
             dynamic parameters = new ExpandoObject();
@@ -278,14 +292,14 @@ namespace simple_appender.tests.Fakes
             parameters.basicProperties = basicProperties;
             parameters.body = body;
 
-            PublishedMessages[exchange].Add(parameters);
+            _publishedMessages[exchange].Add(parameters);
         }
 
         public void BasicPublish(string exchange, string routingKey, bool mandatory, bool immediate, IBasicProperties basicProperties,byte[] body)
         {
-            if (!PublishedMessages.ContainsKey(exchange))
+            if (!_publishedMessages.ContainsKey(exchange))
             {
-                PublishedMessages.Add(exchange, new List<dynamic>());
+                _publishedMessages.Add(exchange, new List<dynamic>());
             }
 
             dynamic parameters = new ExpandoObject();
@@ -296,7 +310,7 @@ namespace simple_appender.tests.Fakes
             parameters.basicProperties = basicProperties;
             parameters.body = body;
 
-            PublishedMessages[exchange].Add(parameters);
+            _publishedMessages[exchange].Add(parameters);
         }
 
         public void BasicAck(ulong deliveryTag, bool multiple)
@@ -362,16 +376,22 @@ namespace simple_appender.tests.Fakes
         {
             IsClosed = true;
             IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText);
         }
 
         public void Abort()
         {
-            throw new NotImplementedException();
+            IsClosed = true;
+            IsOpen = false;
+            CloseReason = null;
+
         }
 
         public void Abort(ushort replyCode, string replyText)
         {
-            throw new NotImplementedException();
+            IsClosed = true;
+            IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library,replyCode,replyText);
         }
 
         public IBasicConsumer DefaultConsumer { get; set; }
