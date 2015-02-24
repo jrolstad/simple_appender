@@ -23,7 +23,8 @@ namespace simple_appender.tests.Fakes
         public List<dynamic> RejectedMessages = new List<dynamic>();
         public List<dynamic> NonAcknowledgedMessages = new List<dynamic>();
 
-        public ConcurrentDictionary<string, Exchange> Exchanges = new ConcurrentDictionary<string, Exchange>(); 
+        public ConcurrentDictionary<string, Exchange> Exchanges = new ConcurrentDictionary<string, Exchange>();
+        public ConcurrentDictionary<string, Queue> Queues = new ConcurrentDictionary<string, Queue>(); 
 
         public bool ApplyPrefetchToAllChannels { get; private set; }
         public ushort PrefetchCount { get; private set; }
@@ -121,22 +122,35 @@ namespace simple_appender.tests.Fakes
 
         public QueueDeclareOk QueueDeclare()
         {
-            throw new NotImplementedException();
+            var name = Guid.NewGuid().ToString();
+            return QueueDeclare(name, durable: false, exclusive: false, autoDelete: false, arguments: null);
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            throw new NotImplementedException();
+            return QueueDeclare(queue, durable: false, exclusive: false, autoDelete: false, arguments: null);
         }
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            throw new NotImplementedException();
+            var queueInstance = new Queue
+            {
+                Name = queue,
+                IsDurable = durable,
+                IsExclusive = exclusive,
+                IsAutoDelete = autoDelete,
+                Arguments = arguments
+            };
+
+            Func<string,Queue,Queue> updateFunction = (name, existing) => existing;
+            Queues.AddOrUpdate(queue, queueInstance, updateFunction);
+
+            return new QueueDeclareOk(queue, 0, 0);
         }
 
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            throw new NotImplementedException();
+            QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
@@ -166,17 +180,20 @@ namespace simple_appender.tests.Fakes
 
         public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
-            throw new NotImplementedException();
+            Queue instance;
+            Queues.TryRemove(queue, out instance);
+
+            return instance != null ? 1u : 0u;
         }
 
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
-            throw new NotImplementedException();
+            QueueDelete(queue,ifUnused:false,ifEmpty:false);
         }
 
         public uint QueueDelete(string queue)
         {
-            throw new NotImplementedException();
+            return QueueDelete(queue, ifUnused: false, ifEmpty: false);
         }
 
         public void ConfirmSelect()

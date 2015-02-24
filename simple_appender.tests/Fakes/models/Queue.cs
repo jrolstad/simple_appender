@@ -12,7 +12,7 @@ namespace simple_appender.tests.Fakes.models
 
         public bool IsAutoDelete { get; set; }
 
-        public Dictionary<string, object> Arguments = new Dictionary<string, object>();
+        public IDictionary<string, object> Arguments = new Dictionary<string, object>();
 
         public List<dynamic> Messages = new List<dynamic>();
     }
