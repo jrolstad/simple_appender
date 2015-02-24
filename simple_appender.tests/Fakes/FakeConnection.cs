@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -45,36 +46,43 @@ namespace simple_appender.tests.Fakes
         public void Close(ushort reasonCode, string reasonText)
         {
             IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library, reasonCode, reasonText);
         }
 
         public void Close(int timeout)
         {
             IsOpen = false;
+            CloseReason = null;
         }
 
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
             IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library, reasonCode, reasonText);
         }
 
         public void Abort()
         {
-            
+            IsOpen = false;
+            CloseReason = null;
         }
 
         public void Abort(ushort reasonCode, string reasonText)
         {
-           
+            IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library, reasonCode, reasonText);
         }
 
         public void Abort(int timeout)
         {
-            
+            IsOpen = false;
+            CloseReason = null;
         }
 
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            
+            IsOpen = false;
+            CloseReason = new ShutdownEventArgs(ShutdownInitiator.Library,reasonCode,reasonText );
         }
 
         public void HandleConnectionBlocked(string reason)
