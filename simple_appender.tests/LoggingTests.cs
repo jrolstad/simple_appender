@@ -23,7 +23,7 @@ namespace simple_appender.tests
                 ExchangeName = "logging.test",
                 ServerUri = "amqp://foo:bar@my-machine-name:5672",
                 RoutingKey = null,
-                Layout = new JsonLayout()
+                Layout = new NewtonSoftJsonLayout()
             };
 
             appender.ActivateOptions();
@@ -53,7 +53,7 @@ namespace simple_appender.tests
                 ExchangeName = "logging.test",
                 ServerUri = "amqp://foo:bar@my-machine-name:5672",
                 RoutingKey = null,
-                Layout = new JsonLayout()
+                Layout = new NewtonSoftJsonLayout()
             };
 
             appender.ActivateOptions();
@@ -84,7 +84,7 @@ namespace simple_appender.tests
                 ExchangeName = "logging.test",
                 ServerUri = "amqp://foo:bar@my-machine-name:5672",
                 RoutingKey = null,
-                Layout = new JsonLayout()
+                Layout = new NewtonSoftJsonLayout()
             };
 
             appender.ActivateOptions();
