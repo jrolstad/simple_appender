@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simple_appender", "simple_appender\simple_appender.csproj", "{FD323DB4-3F8B-4C76-BB7F-899CB040A83E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simple_appender.tests", "simple_appender.tests\simple_appender.tests.csproj", "{56910D43-5AD6-4897-96C7-33CA0F6AF329}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD323DB4-3F8B-4C76-BB7F-899CB040A83E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD323DB4-3F8B-4C76-BB7F-899CB040A83E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD323DB4-3F8B-4C76-BB7F-899CB040A83E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD323DB4-3F8B-4C76-BB7F-899CB040A83E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56910D43-5AD6-4897-96C7-33CA0F6AF329}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56910D43-5AD6-4897-96C7-33CA0F6AF329}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56910D43-5AD6-4897-96C7-33CA0F6AF329}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56910D43-5AD6-4897-96C7-33CA0F6AF329}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
