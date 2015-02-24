@@ -17,6 +17,14 @@ namespace simple_appender.tests.Fakes
                 PublishedMessages[exchangeName] : new List<dynamic>();
         }
 
+        public List<dynamic> AcknowledgedMessages = new List<dynamic>(); 
+        public List<dynamic> RejectedMessages = new List<dynamic>();
+        public List<dynamic> NonAcknowledgedMessages = new List<dynamic>();
+
+        public bool ApplyPrefetchToAllChannels { get; private set; }
+        public ushort PrefetchCount { get; private set; }
+        public uint PrefetchSize { get; private set; }
+
         public void Dispose()
         {
             
@@ -208,6 +216,11 @@ namespace simple_appender.tests.Fakes
             throw new NotImplementedException();
         }
 
+        public BasicGetResult BasicGet(string queue, bool noAck)
+        {
+            throw new NotImplementedException();
+        }
+
         public void BasicCancel(string consumerTag)
         {
             throw new NotImplementedException();
@@ -215,7 +228,9 @@ namespace simple_appender.tests.Fakes
 
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            throw new NotImplementedException();
+            PrefetchSize = prefetchSize;
+            PrefetchCount = prefetchCount;
+            ApplyPrefetchToAllChannels = global;
         }
 
         public void BasicPublish(PublicationAddress addr, IBasicProperties basicProperties, byte[] body)
@@ -286,17 +301,30 @@ namespace simple_appender.tests.Fakes
 
         public void BasicAck(ulong deliveryTag, bool multiple)
         {
-            throw new NotImplementedException();
+            dynamic parameters = new ExpandoObject();
+            parameters.deliveryTag = deliveryTag;
+            parameters.multiple = multiple;
+
+            AcknowledgedMessages.Add(parameters);
         }
 
         public void BasicReject(ulong deliveryTag, bool requeue)
         {
-            throw new NotImplementedException();
+            dynamic parameters = new ExpandoObject();
+            parameters.deliveryTag = deliveryTag;
+            parameters.requeue = requeue;
+
+            RejectedMessages.Add(parameters);
         }
 
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
-            throw new NotImplementedException();
+            dynamic parameters = new ExpandoObject();
+            parameters.deliveryTag = deliveryTag;
+            parameters.multiple = multiple;
+            parameters.requeue = requeue;
+
+            NonAcknowledgedMessages.Add(parameters);
         }
 
         public void BasicRecover(bool requeue)
@@ -305,11 +333,6 @@ namespace simple_appender.tests.Fakes
         }
 
         public void BasicRecoverAsync(bool requeue)
-        {
-            throw new NotImplementedException();
-        }
-
-        public BasicGetResult BasicGet(string queue, bool noAck)
         {
             throw new NotImplementedException();
         }
