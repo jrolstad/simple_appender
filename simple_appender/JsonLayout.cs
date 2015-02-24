@@ -14,7 +14,8 @@ namespace simple_appender
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)
         {
-            var serializer = new DataContractJsonSerializer(loggingEvent.MessageObject.GetType());
+            var settings = new DataContractJsonSerializerSettings {UseSimpleDictionaryFormat = true};
+            var serializer = new DataContractJsonSerializer(loggingEvent.MessageObject.GetType(),settings);
 
             var stream = new MemoryStream();
             serializer.WriteObject(stream,loggingEvent.MessageObject);
