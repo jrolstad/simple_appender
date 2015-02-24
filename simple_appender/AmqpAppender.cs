@@ -35,11 +35,20 @@ namespace simple_appender
 
         protected override void OnClose()
         {
-            if(_channel != null && _channel.IsOpen)
+            if (_channel != null && _channel.IsOpen)
+            {
                 _channel.Close();
+                _channel.Dispose();
+                _channel = null;
+            }
 
-            if(_connection!=null && _connection.IsOpen)
+
+            if (_connection != null && _connection.IsOpen)
+            {
                 _connection.Close();
+                _connection.Dispose();
+                _connection = null;
+            }
         }
 
         protected override void Append(LoggingEvent loggingEvent)
@@ -49,7 +58,13 @@ namespace simple_appender
                 _channel.IsClosed)
             {
                 _connectionFactory.Uri = ServerUri;
-                _connection = _connectionFactory.CreateConnection();
+
+                if (_connection == null ||
+                    !_connection.IsOpen)
+                {
+                    _connection = _connectionFactory.CreateConnection();
+                }
+
                 _channel = _connection.CreateModel();
             }
 

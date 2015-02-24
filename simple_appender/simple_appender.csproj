@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="AmqpAppender.cs" />
     <Compile Include="JsonLayout.cs" />
+    <Compile Include="LogstashLayout.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
