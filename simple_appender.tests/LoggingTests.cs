@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Specialized;
-using System.Configuration;
+using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
 using System.Linq;
+using System.Text;
 using log4net;
 using log4net.Config;
-using log4net.Core;
 using NUnit.Framework;
+using simple_appender.tests.Fakes;
 
 namespace simple_appender.tests
 {
@@ -18,8 +17,14 @@ namespace simple_appender.tests
         public void LogInfo_nativeType_SendsMessage()
         {
             // Arrange
-            var appender = new AmqpAppender { ExchangeName = "logging.test", ServerUri = "amqp://uat_teamdq:uat_teamdq@SEA-2600-49.paraport.com:5672", RoutingKey = null };
-            appender.Layout = new JsonLayout();
+            var fakeConnectionFactory = new FakeConnectionFactory();
+            var appender = new AmqpAppender(fakeConnectionFactory)
+            {
+                ExchangeName = "logging.test",
+                ServerUri = "amqp://foo:bar@my-machine-name:5672",
+                RoutingKey = null,
+                Layout = new JsonLayout()
+            };
 
             appender.ActivateOptions();
           
@@ -31,14 +36,25 @@ namespace simple_appender.tests
             logger.Info(1);
 
             // Assert
+            var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
+            Assert.That(publishedMessages, Has.Count.EqualTo(1));
+
+            var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
+            Assert.That(messageBody,Is.EqualTo("1"));
         }
 
         [Test]
         public void LogInfo_customType_SendsMessage()
         {
             // Arrange
-            var appender = new AmqpAppender { ExchangeName = "logging.test", ServerUri = "amqp://uat_teamdq:uat_teamdq@SEA-2600-49.paraport.com:5672", RoutingKey = null };
-            appender.Layout = new JsonLayout();
+            var fakeConnectionFactory = new FakeConnectionFactory();
+            var appender = new AmqpAppender(fakeConnectionFactory)
+            {
+                ExchangeName = "logging.test",
+                ServerUri = "amqp://foo:bar@my-machine-name:5672",
+                RoutingKey = null,
+                Layout = new JsonLayout()
+            };
 
             appender.ActivateOptions();
 
@@ -47,18 +63,29 @@ namespace simple_appender.tests
             var logger = LogManager.GetLogger(this.GetType());
 
             // Act
-            var item = new SomeType {Id = 1, Name = "My Name", UsedAt = DateTime.Now};
+            var item = new SomeType {Id = 1, Name = "My Name", UsedAt = new DateTime(2015,2,10)};
             logger.Info(item);
 
             // Assert
+            var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
+            Assert.That(publishedMessages, Has.Count.EqualTo(1));
+
+            var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
+            Assert.That(messageBody, Is.EqualTo("{\"Id\":1,\"Name\":\"My Name\",\"UsedAt\":\"\\/Date(1423555200000-0800)\\/\"}"));
         }
 
         [Test]
         public void LogInfo_dynamic_SendsMessage()
         {
             // Arrange
-            var appender = new AmqpAppender { ExchangeName = "logging.test", ServerUri = "amqp://uat_teamdq:uat_teamdq@SEA-2600-49.paraport.com:5672", RoutingKey = null };
-            appender.Layout = new JsonLayout();
+            var fakeConnectionFactory = new FakeConnectionFactory();
+            var appender = new AmqpAppender(fakeConnectionFactory)
+            {
+                ExchangeName = "logging.test",
+                ServerUri = "amqp://foo:bar@my-machine-name:5672",
+                RoutingKey = null,
+                Layout = new JsonLayout()
+            };
 
             appender.ActivateOptions();
 
@@ -70,11 +97,16 @@ namespace simple_appender.tests
             dynamic item = new ExpandoObject();
             item.Id = 2;
             item.Name = "some name";
-            item.LastAccessedAt = DateTime.Now;
+            item.LastAccessedAt = new DateTime(2015,2,10);
 
             logger.Info(item);
 
             // Assert
+            var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
+            Assert.That(publishedMessages, Has.Count.EqualTo(1));
+
+            var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
+            Assert.That(messageBody, Is.EqualTo("{\"Id\":2,\"Name\":\"some name\",\"LastAccessedAt\":\"\\/Date(1423555200000-0800)\\/\"}"));
         }
 
         public class SomeType
