@@ -61,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppenderTests.cs" />
     <Compile Include="ConcurrentQueueTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="Fakes\models\Exchange.cs" />
