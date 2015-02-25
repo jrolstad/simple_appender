@@ -48,6 +48,6 @@ namespace simple_appender
 
         public DateTime entry_date { get; set; }
 
-        public object message { get; set; }
+        public object content { get; set; }
     }
 }
