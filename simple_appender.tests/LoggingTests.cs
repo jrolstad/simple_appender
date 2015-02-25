@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using log4net;
 using log4net.Config;
+using log4net.Core;
 using NUnit.Framework;
 using simple_appender.tests.Fakes;
 
@@ -107,6 +113,39 @@ namespace simple_appender.tests
 
             var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
             Assert.That(messageBody, Is.EqualTo("{\"Id\":2,\"Name\":\"some name\",\"LastAccessedAt\":\"\\/Date(1423555200000-0800)\\/\"}"));
+        }
+
+        [Test]
+        public void Get_TimeZones()
+        {
+            foreach (TimeZoneInfo z in TimeZoneInfo.GetSystemTimeZones())
+                Console.WriteLine("{0}|{1}|{2}|{3}|{4}|",z.Id,z.DisplayName,z.StandardName,z.DaylightName,z.BaseUtcOffset);
+        }
+
+        [Test]
+        public void Sandbox()
+        {
+            var collection = new BlockingCollection<int>();
+
+            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+            collection
+                .GetConsumingEnumerable()
+                .ToObservable(NewThreadScheduler.Default)
+                .Subscribe(SendMessage);
+
+            collection.Add(1);
+            collection.Add(2);
+            collection.Add(3);
+            collection.Add(4);
+
+            Thread.Sleep(1000);
+
+        }
+
+        private void SendMessage(int data)
+        {
+            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
         }
 
         public class SomeType
