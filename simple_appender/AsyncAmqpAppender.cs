@@ -46,7 +46,6 @@ namespace simple_appender
             {
                 ServerUri = _cachedServerUri;
             }
-
             _loggingEvents
                 .GetConsumingEnumerable()
                 .ToObservable(NewThreadScheduler.Default)

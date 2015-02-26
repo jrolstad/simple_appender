@@ -17,7 +17,7 @@ namespace simple_appender
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)
         {
-            var isPerformanceEntry = loggingEvent.MessageObject is IPerformanceEntry;
+            var isPerformanceEntry = loggingEvent.MessageObject is PerformanceEntry;
 
             var logstashEntry = new LogstashEntry
             {
@@ -36,9 +36,21 @@ namespace simple_appender
 
     }
 
-    public interface IPerformanceEntry
+    public class PerformanceEntry
     {
-        
+        public string process_name { get; set; }
+        public string process_id { get; set; }
+
+        public string parent_process_name { get; set; }
+        public string parent_process_id { get; set; }
+
+        public string event_type { get; set; }
+    }
+
+    public class PerformanceEventType
+    {
+        public static string Enter = "enter";
+        public static string Exit = "exit";
     }
 
     public class LogstashEntry
