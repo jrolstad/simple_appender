@@ -16,7 +16,7 @@ namespace simple_appender
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)
         {
-            var message = JsonConvert.SerializeObject(loggingEvent.MessageObject,Formatting.None,new JavaScriptDateTimeConverter());
+            var message = JsonConvert.SerializeObject(loggingEvent.MessageObject,Formatting.None);
             writer.Write(message);
         }
     }

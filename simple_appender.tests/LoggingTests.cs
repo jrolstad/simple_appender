@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading;
 using log4net;
+using log4net.Appender;
 using log4net.Config;
-using log4net.Core;
 using NUnit.Framework;
 using simple_appender.tests.Fakes;
 
@@ -24,16 +18,8 @@ namespace simple_appender.tests
         {
             // Arrange
             var fakeConnectionFactory = new FakeConnectionFactory();
-            var appender = new AmqpAppender(fakeConnectionFactory)
-            {
-                ExchangeName = "logging.test",
-                ServerUri = "amqp://foo:bar@my-machine-name:5672",
-                RoutingKey = null,
-                Layout = new NewtonSoftJsonLayout()
-            };
+            var appender = GetAppender(fakeConnectionFactory);
 
-            appender.ActivateOptions();
-          
             BasicConfigurator.Configure(appender);
 
             var logger = LogManager.GetLogger(this.GetType());
@@ -54,15 +40,7 @@ namespace simple_appender.tests
         {
             // Arrange
             var fakeConnectionFactory = new FakeConnectionFactory();
-            var appender = new AmqpAppender(fakeConnectionFactory)
-            {
-                ExchangeName = "logging.test",
-                ServerUri = "amqp://foo:bar@my-machine-name:5672",
-                RoutingKey = null,
-                Layout = new NewtonSoftJsonLayout()
-            };
-
-            appender.ActivateOptions();
+            var appender = GetAppender(fakeConnectionFactory);
 
             BasicConfigurator.Configure(appender);
 
@@ -77,7 +55,7 @@ namespace simple_appender.tests
             Assert.That(publishedMessages, Has.Count.EqualTo(1));
 
             var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
-            Assert.That(messageBody, Is.EqualTo("{\"Id\":1,\"Name\":\"My Name\",\"UsedAt\":\"\\/Date(1423555200000-0800)\\/\"}"));
+            Assert.That(messageBody, Is.EqualTo("{\"Id\":1,\"Name\":\"My Name\",\"UsedAt\":\"2015-02-10T00:00:00\"}"));
         }
 
         [Test]
@@ -85,15 +63,7 @@ namespace simple_appender.tests
         {
             // Arrange
             var fakeConnectionFactory = new FakeConnectionFactory();
-            var appender = new AmqpAppender(fakeConnectionFactory)
-            {
-                ExchangeName = "logging.test",
-                ServerUri = "amqp://foo:bar@my-machine-name:5672",
-                RoutingKey = null,
-                Layout = new NewtonSoftJsonLayout()
-            };
-
-            appender.ActivateOptions();
+            var appender = GetAppender(fakeConnectionFactory);
 
             BasicConfigurator.Configure(appender);
 
@@ -112,40 +82,22 @@ namespace simple_appender.tests
             Assert.That(publishedMessages, Has.Count.EqualTo(1));
 
             var messageBody = Encoding.UTF8.GetString(publishedMessages.First().body);
-            Assert.That(messageBody, Is.EqualTo("{\"Id\":2,\"Name\":\"some name\",\"LastAccessedAt\":\"\\/Date(1423555200000-0800)\\/\"}"));
+            Assert.That(messageBody, Is.EqualTo("{\"Id\":2,\"Name\":\"some name\",\"LastAccessedAt\":\"2015-02-10T00:00:00\"}"));
         }
 
-        [Test]
-        public void Get_TimeZones()
+
+        private static IAppender GetAppender(FakeConnectionFactory fakeConnectionFactory)
         {
-            foreach (TimeZoneInfo z in TimeZoneInfo.GetSystemTimeZones())
-                Console.WriteLine("{0}|{1}|{2}|{3}|{4}|",z.Id,z.DisplayName,z.StandardName,z.DaylightName,z.BaseUtcOffset);
-        }
+            var appender = new AmqpAppender(fakeConnectionFactory)
+            {
+                ExchangeName = "logging.test",
+                ServerUri = "amqp://foo:bar@my-machine-name:5672",
+                RoutingKey = null,
+                Layout = new NewtonSoftJsonLayout()
+            };
 
-        [Test]
-        public void Sandbox()
-        {
-            var collection = new BlockingCollection<int>();
-
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
-            collection
-                .GetConsumingEnumerable()
-                .ToObservable(NewThreadScheduler.Default)
-                .Subscribe(SendMessage);
-
-            collection.Add(1);
-            collection.Add(2);
-            collection.Add(3);
-            collection.Add(4);
-
-            Thread.Sleep(1000);
-
-        }
-
-        private void SendMessage(int data)
-        {
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+            appender.ActivateOptions();
+            return appender;
         }
 
         public class SomeType
