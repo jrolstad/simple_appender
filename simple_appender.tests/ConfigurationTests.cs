@@ -40,8 +40,6 @@ namespace simple_appender.tests
         {
             var collection = new BlockingCollection<int>();
 
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
             collection
                 .GetConsumingEnumerable()
                 .ToObservable(NewThreadScheduler.Default)
@@ -52,13 +50,14 @@ namespace simple_appender.tests
             collection.Add(3);
             collection.Add(4);
 
+            // Wait for everyting to be written out
             Thread.Sleep(1000);
 
         }
 
         private void SendMessage(int data)
         {
-            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+            Console.WriteLine("{0}|{1}",Thread.CurrentThread.ManagedThreadId,data);
         }
     }
 }

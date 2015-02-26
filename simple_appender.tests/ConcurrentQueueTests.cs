@@ -30,9 +30,9 @@ namespace simple_appender.tests
             var writingTask = new Task(writer);
             writingTask.Start();
 
-            queue.TryAdd("foo");
-            queue.TryAdd("one");
-            queue.TryAdd("two");
+            queue.Add("foo");
+            queue.Add("one");
+            queue.Add("two");
 
             Thread.Sleep(1000);
         }
