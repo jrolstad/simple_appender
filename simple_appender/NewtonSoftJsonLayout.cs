@@ -11,7 +11,7 @@ namespace simple_appender
     {
         public override void ActivateOptions()
         {
-
+          
         }
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)

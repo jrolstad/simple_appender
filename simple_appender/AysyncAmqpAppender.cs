@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Concurrent;
-using System.IO;
-using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Text;
 using log4net.Appender;
 using log4net.Core;
 using RabbitMQ.Client;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 
 namespace simple_appender
 {
@@ -24,7 +21,8 @@ namespace simple_appender
         private IConnection _connection;
         private readonly ConnectionFactory _connectionFactory;
 
-        private readonly BlockingCollection<LoggingEvent> _loggingEvents = new BlockingCollection<LoggingEvent>(); 
+        private readonly BlockingCollection<LoggingEvent> _loggingEvents = new BlockingCollection<LoggingEvent>();
+        private static string _cachedServerUri;
 
         public AsyncAmqpAppender():this(new ConnectionFactory())
         {
@@ -44,14 +42,18 @@ namespace simple_appender
 
         public override void ActivateOptions()
         {
+            if (string.IsNullOrWhiteSpace(ServerUri))
+            {
+                ServerUri = _cachedServerUri;
+            }
+
             _loggingEvents
                 .GetConsumingEnumerable()
                 .ToObservable(NewThreadScheduler.Default)
-                .Subscribe(e => { SendLoggingEventAsMessage(e); });
+                .Subscribe(SendLoggingEventAsMessage);
+
             base.ActivateOptions();
         }
-
-        
 
         protected override void OnClose()
         {
@@ -92,15 +94,16 @@ namespace simple_appender
                 _channel = _connection.CreateModel();
             }
 
-            var builder = new StringBuilder();
-            var stringWriter = new StringWriter(builder);
-            Layout.Format(stringWriter, loggingEvent);
-
-            var renderedMessage = builder.ToString();
+            var renderedMessage = this.RenderLoggingEvent(loggingEvent);
             var messageBody = Encoding.UTF8.GetBytes(renderedMessage);
 
             var routingKey = RoutingKey ?? string.Empty;
             _channel.BasicPublish(exchange: ExchangeName, routingKey: routingKey, basicProperties: null, body: messageBody);
+        }
+
+        public static void SetServerUri(string uri)
+        {
+            _cachedServerUri = uri;
         }
     }
 }
