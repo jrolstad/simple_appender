@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using log4net.Appender;
 using log4net.Core;
@@ -21,7 +22,7 @@ namespace simple_appender
         private IConnection _connection;
         private readonly ConnectionFactory _connectionFactory;
 
-        private readonly BlockingCollection<LoggingEvent> _loggingEvents = new BlockingCollection<LoggingEvent>();
+        private readonly Subject<LoggingEvent> _subject = new Subject<LoggingEvent>();
         private static string _cachedServerUri;
 
         public AsyncAmqpAppender():this(new ConnectionFactory())
@@ -46,9 +47,8 @@ namespace simple_appender
             {
                 ServerUri = _cachedServerUri;
             }
-            _loggingEvents
-                .GetConsumingEnumerable()
-                .ToObservable(NewThreadScheduler.Default)
+            _subject
+                .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(SendLoggingEventAsMessage);
 
             base.ActivateOptions();
@@ -56,6 +56,9 @@ namespace simple_appender
 
         protected override void OnClose()
         {
+            _subject.OnCompleted();
+            _subject.Dispose();
+
             if (_channel != null && _channel.IsOpen)
             {
                 _channel.Close();
@@ -74,7 +77,7 @@ namespace simple_appender
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-           _loggingEvents.Add(loggingEvent);
+           _subject.OnNext(loggingEvent);
         }
 
         private void SendLoggingEventAsMessage(LoggingEvent loggingEvent)
