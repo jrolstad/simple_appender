@@ -10,8 +10,6 @@ namespace simple_appender
 {
     public class LogstashLayout : LayoutSkeleton
     {
-        private readonly DataContractJsonSerializer _serializer = new DataContractJsonSerializer(typeof(LogstashEntry), new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true });
-
         public override void ActivateOptions()
         {
 
@@ -19,20 +17,28 @@ namespace simple_appender
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)
         {
+            var isPerformanceEntry = loggingEvent.MessageObject is IPerformanceEntry;
+
             var logstashEntry = new LogstashEntry
             {
-                application_name = Assembly.GetEntryAssembly().GetName().Name,
+                application_name = AppDomain.CurrentDomain.FriendlyName,
                 machine_name = Environment.MachineName,
                 user_name = loggingEvent.UserName,
-                entry_date = loggingEvent.TimeStamp,
-                performance = loggingEvent.MessageObject,
-                error = loggingEvent.ExceptionObject
+                entry_date = loggingEvent.TimeStamp.ToUniversalTime(),
+                performance = isPerformanceEntry? loggingEvent.MessageObject:null,
+                error = loggingEvent.ExceptionObject,
+                content = isPerformanceEntry? null: loggingEvent.MessageObject
             };
 
             var message = JsonConvert.SerializeObject(logstashEntry, Formatting.None);
             writer.Write(message);
         }
 
+    }
+
+    public interface IPerformanceEntry
+    {
+        
     }
 
     public class LogstashEntry
