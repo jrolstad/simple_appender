@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Json;
 using log4net.Core;
 using log4net.Layout;
+using Newtonsoft.Json;
 
 namespace simple_appender
 {
@@ -18,22 +19,18 @@ namespace simple_appender
 
         public override void Format(TextWriter writer, LoggingEvent loggingEvent)
         {
-
             var logstashEntry = new LogstashEntry
             {
                 application_name = Assembly.GetEntryAssembly().GetName().Name,
                 machine_name = Environment.MachineName,
                 user_name = loggingEvent.UserName,
-                entry_date = loggingEvent.TimeStamp
-
+                entry_date = loggingEvent.TimeStamp,
+                performance = loggingEvent.MessageObject,
+                error = loggingEvent.ExceptionObject
             };
-            var stream = new MemoryStream();
-            _serializer.WriteObject(stream, logstashEntry);
 
-            stream.Position = 0;
-            var streamReader = new StreamReader(stream);
-            var formattedMessage = streamReader.ReadToEnd();
-            writer.Write(formattedMessage);
+            var message = JsonConvert.SerializeObject(logstashEntry, Formatting.None);
+            writer.Write(message);
         }
 
     }
@@ -49,5 +46,9 @@ namespace simple_appender
         public DateTime entry_date { get; set; }
 
         public object content { get; set; }
+
+        public object performance { get; set; }
+
+        public object error { get; set; }
     }
 }
