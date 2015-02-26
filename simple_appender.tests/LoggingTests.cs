@@ -2,6 +2,7 @@
 using System.Dynamic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
@@ -26,6 +27,7 @@ namespace simple_appender.tests
 
             // Act
             logger.Info(1);
+            Thread.Sleep(2000);
 
             // Assert
             var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
@@ -49,6 +51,8 @@ namespace simple_appender.tests
             // Act
             var item = new SomeType {Id = 1, Name = "My Name", UsedAt = new DateTime(2015,2,10)};
             logger.Info(item);
+
+            Thread.Sleep(2000);
 
             // Assert
             var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
@@ -76,6 +80,7 @@ namespace simple_appender.tests
             item.LastAccessedAt = new DateTime(2015,2,10);
 
             logger.Info(item);
+            Thread.Sleep(2000);
 
             // Assert
             var publishedMessages = fakeConnectionFactory.UnderlyingModel.PublishedMessagesOnExchange("logging.test");
@@ -88,7 +93,7 @@ namespace simple_appender.tests
 
         private static IAppender GetAppender(FakeConnectionFactory fakeConnectionFactory)
         {
-            var appender = new AmqpAppender(fakeConnectionFactory)
+            var appender = new AsyncAmqpAppender(fakeConnectionFactory)
             {
                 ExchangeName = "logging.test",
                 ServerUri = "amqp://foo:bar@my-machine-name:5672",
