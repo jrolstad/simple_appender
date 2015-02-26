@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization.Json;
 using log4net.Core;
 using log4net.Layout;
 using Newtonsoft.Json;
@@ -21,13 +19,13 @@ namespace simple_appender
 
             var logstashEntry = new LogstashEntry
             {
-                application_name = AppDomain.CurrentDomain.FriendlyName,
-                machine_name = Environment.MachineName,
-                user_name = loggingEvent.UserName,
-                entry_date = loggingEvent.TimeStamp.ToUniversalTime(),
-                performance = isPerformanceEntry? loggingEvent.MessageObject:null,
-                error = loggingEvent.ExceptionObject,
-                content = isPerformanceEntry? null: loggingEvent.MessageObject
+                ApplicationName = AppDomain.CurrentDomain.FriendlyName,
+                MachineName = Environment.MachineName,
+                UserName = loggingEvent.UserName,
+                EntryDate = loggingEvent.TimeStamp.ToUniversalTime(),
+                Performance = isPerformanceEntry? loggingEvent.MessageObject:null,
+                Error = loggingEvent.ExceptionObject,
+                Content = isPerformanceEntry? null: loggingEvent.MessageObject
             };
 
             var message = JsonConvert.SerializeObject(logstashEntry, Formatting.None);
@@ -38,13 +36,18 @@ namespace simple_appender
 
     public class PerformanceEntry
     {
-        public string process_name { get; set; }
-        public string process_id { get; set; }
+        [JsonProperty("process_name")]
+        public string ProcessName { get; set; }
+        [JsonProperty("process_id")]
+        public string ProcessId { get; set; }
 
-        public string parent_process_name { get; set; }
-        public string parent_process_id { get; set; }
+        [JsonProperty("parent_process_name")]
+        public string ParentProcessName { get; set; }
+        [JsonProperty("parent_process_id")]
+        public string ParentProcessId { get; set; }
 
-        public string event_type { get; set; }
+        [JsonProperty("event_type")]
+        public string EventType { get; set; }
     }
 
     public class PerformanceEventType
@@ -55,18 +58,25 @@ namespace simple_appender
 
     public class LogstashEntry
     {
-        public string application_name { get; set; }
+        [JsonProperty("application_name")]
+        public string ApplicationName { get; set; }
 
-        public string machine_name { get; set; }
+        [JsonProperty("machine_name")]
+        public string MachineName { get; set; }
 
-        public string user_name { get; set; }
+        [JsonProperty("user_name")]
+        public string UserName { get; set; }
 
-        public DateTime entry_date { get; set; }
+        [JsonProperty("entry_date")]
+        public DateTime EntryDate { get; set; }
 
-        public object content { get; set; }
+        [JsonProperty("content")]
+        public object Content { get; set; }
 
-        public object performance { get; set; }
+        [JsonProperty("performance")]
+        public object Performance { get; set; }
 
-        public object error { get; set; }
+        [JsonProperty("error")]
+        public object Error { get; set; }
     }
 }
